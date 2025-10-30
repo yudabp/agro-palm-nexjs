@@ -20,7 +20,9 @@
     "docker:build": "docker build -t codeguide-starter-fullstack .",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f"
+    "docker:logs": "docker compose logs -f",
+    "seed": "npx tsx scripts/seed.ts",
+    "seed:roles": "npx tsx scripts/seed-roles.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
