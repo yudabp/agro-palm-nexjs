@@ -1,25 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { masterBkkExpenseCategories } from '@/db/schema';
-import { eq, like } from 'drizzle-orm';
+import { eq, ilike, or } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
 
-    let categories;
+    let totalCount = 0;
+    let categories = [];
+
     if (search) {
-      categories = await db.select()
-        .from(masterBkkExpenseCategories)
-        .where(like(masterBkkExpenseCategories.name, `%${search}%`))
-        .orderBy(masterBkkExpenseCategories.name);
-    } else {
-      categories = await db.select().from(masterBkkExpenseCategories).orderBy(masterBkkExpenseCategories.name);
-    }
+      // Get filtered data and count
+      const searchFilter = or(
+        ilike(masterBkkExpenseCategories.name, `%${search}%`),
+        ilike(masterBkkExpenseCategories.description, `%${search}%`)
+      );
 
-    return NextResponse.json(categories);
-  } catch (error) {
+      const [totalCountResult, filteredCategories] = await Promise.all([
+        db.select({ count: masterBkkExpenseCategories.id }).from(masterBkkExpenseCategories).where(searchFilter),
+        db.select().from(masterBkkExpenseCategories).where(searchFilter)
+          .orderBy(masterBkkExpenseCategories.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      categories = filteredCategories;
+    } else {
+      // Get all data and count
+      const [totalCountResult, allCategories] = await Promise.all([
+        db.select({ count: masterBkkExpenseCategories.id }).from(masterBkkExpenseCategories),
+        db.select().from(masterBkkExpenseCategories)
+          .orderBy(masterBkkExpenseCategories.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      categories = allCategories;
+    }
+    
+    // Format response according to PaginatedResponse interface
+    const response = {
+      data: categories,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    };
+
+    return NextResponse.json(response);
+ } catch (error) {
     console.error('Error fetching BKK expense categories:', error);
     return NextResponse.json(
       { error: 'Failed to fetch BKK expense categories' },

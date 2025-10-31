@@ -1,6 +1,8 @@
 "use client"
 
-import { IconCirclePlusFilled, IconMail, type Icon } from "@tabler/icons-react"
+import Link from "next/link"
+import { IconCirclePlusFilled, IconMail, type Icon, IconChevronDown, IconChevronRight } from "@tabler/icons-react"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -18,8 +20,21 @@ export function NavMain({
     title: string
     url: string
     icon?: Icon
+    items?: {
+      title: string
+      url: string
+    }[]
   }[]
 }) {
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+
+  const toggleItem = (title: string) => {
+    setOpenItems(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }))
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -43,14 +58,46 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            const isOpen = openItems[item.title]
+            const hasSubItems = item.items && item.items.length > 0
+
+            return (
+              <div key={item.title}>
+                <SidebarMenuItem>
+                  {hasSubItems ? (
+                    <SidebarMenuButton onClick={() => toggleItem(item.title)} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                      </div>
+                      {isOpen ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />}
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton tooltip={item.title} asChild>
+                      <Link href={item.url}>
+                        {item.icon && <item.icon />}
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+                {hasSubItems && isOpen && (
+                  <SidebarMenu className="ml-6">
+                    {item.items?.map((subItem) => (
+                      <SidebarMenuItem key={subItem.title}>
+                        <SidebarMenuButton asChild>
+                          <Link href={subItem.url}>
+                            <span>{subItem.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                )}
+              </div>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

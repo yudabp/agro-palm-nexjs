@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash2, Search, Truck, Building, Factory, Users, DollarSign, CreditCard } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Edit, Trash2, Search, Truck, Building, Factory, Users, DollarSign, CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -21,6 +22,16 @@ interface MasterDataItem {
   createdAt: string;
   updatedAt: string;
   [key: string]: any;
+}
+
+interface PaginatedResponse {
+  data: MasterDataItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 const masterDataTypes = [
@@ -110,24 +121,47 @@ export default function MasterDataPage() {
   const { canWrite } = useAuth();
   const [activeTab, setActiveTab] = useState("vehicles");
   const [data, setData] = useState<Record<string, MasterDataItem[]>>({});
+  const [pagination, setPagination] = useState<Record<string, PaginatedResponse['pagination']>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [searchTerm, setSearchTerm] = useState<Record<string, string>>({});
+  const [currentPage, setCurrentPage] = useState<Record<string, number>>({});
+  const [pageSize, setPageSize] = useState<Record<string, number>>({});
   const [editItem, setEditItem] = useState<MasterDataItem | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
 
   const currentType = masterDataTypes.find(t => t.key === activeTab)!;
 
-  const fetchData = async (type: string) => {
+  const fetchData = async (type: string, page?: number, limit?: number) => {
     setLoading(prev => ({ ...prev, [type]: true }));
     try {
       const typeConfig = masterDataTypes.find(t => t.key === type);
-      const searchQuery = searchTerm[type] ? `?search=${encodeURIComponent(searchTerm[type])}` : '';
-      const response = await fetch(`/api/master/${typeConfig!.apiPath}${searchQuery}`);
+      const currentPage = page || 1;
+      const currentLimit = limit || pageSize[type] || 10;
+      const search = searchTerm[type] || '';
+
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: currentLimit.toString(),
+      });
+
+      if (search) {
+        params.append('search', search);
+      }
+
+      const response = await fetch(`/api/master/${typeConfig!.apiPath}?${params}`);
 
       if (response.ok) {
-        const result = await response.json();
-        setData(prev => ({ ...prev, [type]: result }));
+        const result: PaginatedResponse = await response.json();
+        if (result.pagination) {
+          setData(prev => ({ ...prev, [type]: result.data }));
+          setPagination(prev => ({ ...prev, [type]: result.pagination }));
+          setCurrentPage(prev => ({ ...prev, [type]: result.pagination.page }));
+          setPageSize(prev => ({ ...prev, [type]: result.pagination.limit }));
+        } else {
+          // Handle case where pagination is not provided
+          toast.error("Failed to fetch data: pagination info missing");
+        }
       } else {
         toast.error("Failed to fetch data");
       }
@@ -196,7 +230,28 @@ export default function MasterDataPage() {
 
   const handleSearch = (value: string) => {
     setSearchTerm(prev => ({ ...prev, [activeTab]: value }));
-    setTimeout(() => fetchData(activeTab), 300);
+    setCurrentPage(prev => ({ ...prev, [activeTab]: 1 }));
+  };
+
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm[activeTab] !== undefined) {
+        fetchData(activeTab, 1);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, activeTab]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(prev => ({ ...prev, [activeTab]: newPage }));
+    fetchData(activeTab, newPage);
+  };
+
+  const handlePageSizeChange = (newLimit: number) => {
+    setPageSize(prev => ({ ...prev, [activeTab]: newLimit }));
+    setCurrentPage(prev => ({ ...prev, [activeTab]: 1 }));
+    fetchData(activeTab, 1, newLimit);
   };
 
   // Fetch initial data when tab changes
@@ -207,7 +262,7 @@ export default function MasterDataPage() {
   }, [activeTab]);
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Master Data Management</h1>
         <p className="text-muted-foreground">
@@ -352,6 +407,73 @@ export default function MasterDataPage() {
                       )}
                     </TableBody>
                   </Table>
+                )}
+
+                {/* Pagination Controls */}
+                {pagination[type.key] && pagination[type.key].totalPages > 1 && (
+                  <div className="flex items-center justify-between px-2 py-4">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {((pagination[type.key].page - 1) * pagination[type.key].limit) + 1} to{' '}
+                        {Math.min(pagination[type.key].page * pagination[type.key].limit, pagination[type.key].total)} of{' '}
+                        {pagination[type.key].total} results
+                      </p>
+                      <Select
+                        value={pageSize[type.key]?.toString() || '10'}
+                        onValueChange={(value) => handlePageSizeChange(Number(value))}
+                      >
+                        <SelectTrigger className="h-8 w-[70px]">
+                          <SelectValue placeholder={pageSize[type.key] || 10} />
+                        </SelectTrigger>
+                        <SelectContent side="top">
+                          {[5, 10, 20, 50].map((size) => (
+                            <SelectItem key={size} value={size.toString()}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(1)}
+                        disabled={pagination[type.key].page === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4 -ml-2" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination[type.key].page - 1)}
+                        disabled={pagination[type.key].page === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="flex items-center justify-center text-sm font-medium w-8">
+                        {pagination[type.key].page}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination[type.key].page + 1)}
+                        disabled={pagination[type.key].page === pagination[type.key].totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination[type.key].totalPages)}
+                        disabled={pagination[type.key].page === pagination[type.key].totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-4 w-4 -ml-2" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>

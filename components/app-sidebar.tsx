@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/sidebar"
 
 const staticData = {
-  navMain: [
+ navMain: [
     {
       title: "Agro Palma",
       url: "/dashboard/agro-palma",
@@ -44,8 +44,42 @@ const staticData = {
     },
     {
       title: "Master Data",
-      url: "/dashboard/master-data",
+      url: "#",
       icon: IconDatabase,
+      items: [
+        {
+          title: "Kendaraan",
+          url: "/dashboard/master-data/vehicles",
+        },
+        {
+          title: "Afdeling",
+          url: "/dashboard/master-data/afdelings",
+        },
+        {
+          title: "PKS",
+          url: "/dashboard/master-data/pks",
+        },
+        {
+          title: "Departemen Karyawan",
+          url: "/dashboard/master-data/employee-departments",
+        },
+        {
+          title: "Jabatan Karyawan",
+          url: "/dashboard/master-data/employee-positions",
+        },
+        {
+          title: "Golongan Karyawan",
+          url: "/dashboard/master-data/employee-groups",
+        },
+        {
+          title: "Jenis Hutang",
+          url: "/dashboard/master-data/debt-types",
+        },
+        {
+          title: "Kategori Pengeluaran BKK",
+          url: "/dashboard/master-data/bkk-expense-categories",
+        },
+      ],
     },
     {
       title: "Data Produksi",
@@ -172,19 +206,22 @@ const staticData = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { data: session } = useSession()
+  const { data: session } = useSession() as any;
   
-  const userData = session?.user ? {
-    name: session.user.name || "User",
-    email: session.user.email,
-    avatar: session.user.image || "/codeguide-logo.png",
+  // Type assertion to handle the session type properly
+  const sessionUser = session?.user as { name?: string; email?: string; image?: string } | undefined;
+  
+  const userData = sessionUser ? {
+    name: sessionUser.name || sessionUser.email?.split('@')[0] || "User",
+    email: sessionUser.email || "",
+    avatar: sessionUser.image || "/codeguide-logo.png",
   } : {
     name: "Guest",
     email: "guest@example.com", 
     avatar: "/codeguide-logo.png",
   }
 
-  return (
+ return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
@@ -207,6 +244,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={staticData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
+        {/* @ts-ignore */}
         <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>

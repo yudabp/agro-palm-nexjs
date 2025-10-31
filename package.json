@@ -2,6 +2,7 @@
   "name": "codeguide-starter-fullstack",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -17,6 +18,7 @@
     "db:dev": "docker compose --profile dev up postgres-dev -d",
     "db:dev-down": "docker compose --profile dev down postgres-dev",
     "db:reset": "drizzle-kit drop && drizzle-kit push",
+    "seed:master": "npx tsx scripts/seed-master-data.ts",
     "docker:build": "docker build -t codeguide-starter-fullstack .",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
@@ -30,6 +32,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.1",
+    "@paralleldrive/cuid2": "^3.0.4",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

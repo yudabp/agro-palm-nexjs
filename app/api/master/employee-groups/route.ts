@@ -1,25 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { masterEmployeeGroups } from '@/db/schema';
-import { eq, like } from 'drizzle-orm';
+import { eq, ilike, or } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
 
-    let groups;
+    let totalCount = 0;
+    let groups = [];
+
     if (search) {
-      groups = await db.select()
-        .from(masterEmployeeGroups)
-        .where(like(masterEmployeeGroups.name, `%${search}%`))
-        .orderBy(masterEmployeeGroups.name);
-    } else {
-      groups = await db.select().from(masterEmployeeGroups).orderBy(masterEmployeeGroups.name);
-    }
+      // Get filtered data and count
+      const searchFilter = or(
+        ilike(masterEmployeeGroups.name, `%${search}%`),
+        ilike(masterEmployeeGroups.description, `%${search}%`)
+      );
 
-    return NextResponse.json(groups);
-  } catch (error) {
+      const [totalCountResult, filteredGroups] = await Promise.all([
+        db.select({ count: masterEmployeeGroups.id }).from(masterEmployeeGroups).where(searchFilter),
+        db.select().from(masterEmployeeGroups).where(searchFilter)
+          .orderBy(masterEmployeeGroups.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      groups = filteredGroups;
+    } else {
+      // Get all data and count
+      const [totalCountResult, allGroups] = await Promise.all([
+        db.select({ count: masterEmployeeGroups.id }).from(masterEmployeeGroups),
+        db.select().from(masterEmployeeGroups)
+          .orderBy(masterEmployeeGroups.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      groups = allGroups;
+    }
+    
+    // Format response according to PaginatedResponse interface
+    const response = {
+      data: groups,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    };
+
+    return NextResponse.json(response);
+ } catch (error) {
     console.error('Error fetching employee groups:', error);
     return NextResponse.json(
       { error: 'Failed to fetch employee groups' },

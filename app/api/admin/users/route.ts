@@ -2,15 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { user, userRoles, userRoleAssignments } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    // Get the current session from cookies
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session-token')?.value;
+    const userId = cookieStore.get('user-id')?.value;
 
-    if (!session?.user?.id) {
+    if (!sessionToken || !userId) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }

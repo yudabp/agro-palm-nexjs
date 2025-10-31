@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { userRoles, userRoleAssignments } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the current session
-    const session = await auth.api.getSession({
-      headers: request.headers,
-    });
+    // Get the current session from cookies
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session-token')?.value;
+    const userId = cookieStore.get('user-id')?.value;
 
-    if (!session?.user?.id) {
+    if (!sessionToken || !userId) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       .innerJoin(userRoles, eq(userRoleAssignments.roleId, userRoles.id))
       .where(
         and(
-          eq(userRoleAssignments.userId, session.user.id),
+          eq(userRoleAssignments.userId, userId),
           eq(userRoleAssignments.isActive, true)
         )
       )

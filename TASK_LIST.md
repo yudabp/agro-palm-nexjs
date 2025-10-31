@@ -28,9 +28,9 @@ Based on Technical Specification v2.0
   - [x] master_debt_types
   - [x] master_bkk_expense_categories
 - [x] Implement transactional tables:
-  - [x] users & roles
+ - [x] users & roles
   - [x] data_produksi
-  - [x] data_penjualan
+ - [x] data_penjualan
   - [x] data_karyawan
   - [x] keuangan_perusahaan (KP)
   - [x] buku_kas_kebun (BKK)
@@ -65,13 +65,13 @@ Based on Technical Specification v2.0
 - [x] Implement search functionality for master data
 
 ### 5. API Development - Production Data
-- [ ] `POST /api/produksi` - Create production data
-- [ ] `GET /api/produksi` - List production data with filters
-- [ ] `GET /api/produksi/[id]` - Get single production data
-- [ ] `PUT /api/produksi/[id]` - Update production data
-- [ ] `DELETE /api/produksi/[id]` - Delete production data
-- [ ] Implement file upload for production photos
-- [ ] Add pagination and sorting
+- [x] `POST /api/produksi` - Create production data
+- [x] `GET /api/produksi` - List production data with filters
+- [x] `GET /api/produksi/[id]` - Get single production data
+- [x] `PUT /api/produksi/[id]` - Update production data
+- [x] `DELETE /api/produksi/[id]` - Delete production data
+- [x] Implement file upload for production photos
+- [x] Add pagination and sorting
 
 ### 6. API Development - Sales Data
 - [ ] `POST /api/penjualan` - Create sales data with tax support
@@ -85,12 +85,12 @@ Based on Technical Specification v2.0
 - [ ] Support manual and SP-linked sales
 
 ### 7. API Development - Employee Data
-- [ ] `POST /api/karyawan` - Create employee data
-- [ ] `GET /api/karyawan` - List employees with filters
-- [ ] `GET /api/karyawan/[id]` - Get single employee
-- [ ] `PUT /api/karyawan/[id]` - Update employee data
-- [ ] `DELETE /api/karyawan/[id]` - Delete employee
-- [ ] Implement employee status tracking (Aktif, Tidak Aktif, A.IM)
+- [x] `POST /api/karyawan` - Create employee data
+- [x] `GET /api/karyawan` - List employees with filters
+- [x] `GET /api/karyawan/[id]` - Get single employee
+- [x] `PUT /api/karyawan/[id]` - Update employee data
+- [x] `DELETE /api/karyawan/[id]` - Delete employee
+- [x] Implement employee status tracking (Aktif, Tidak Aktif, A.IM)
 
 ### 8. API Development - Financial Module (KP)
 - [ ] `POST /api/keuangan/kp` - Create KP transaction
@@ -123,18 +123,18 @@ Based on Technical Specification v2.0
 ### 11. API Development - Dashboard
 - [ ] `GET /api/dashboard/insights` - Dashboard aggregated data
 - [ ] Implement data aggregation for:
-  - [ ] Total production (KG)
+ - [ ] Total production (KG)
   - [ ] Total sales (RP)
   - [ ] Total income (KP + BKK breakdown)
-  - [ ] Total expenses (KP + BKK breakdown)
-  - [ ] Total remaining debt
+ - [ ] Total expenses (KP + BKK breakdown)
+ - [ ] Total remaining debt
   - [ ] Active employee count
 - [ ] Add date range filtering
 - [ ] Implement caching for performance
 
 ### 12. Business Logic Implementation
 - [ ] Implement Sales Flow with SP autocomplete
-- [ ] Implement Tax calculation logic (11% default)
+- [ ] Implement Tax calculation logic (1% default)
 - [ ] Implement KP → BKK auto-creation for expenses
 - [ ] Implement Debt payment tracking through BKK
 - [ ] Implement File upload and storage system
@@ -144,11 +144,11 @@ Based on Technical Specification v2.0
 
 ### 13. File Management System
 - [x] Setup file storage (local or cloud)
-- [ ] Implement file upload middleware
-- [ ] Create file serving endpoints
-- [ ] Add file validation (size, type)
-- [ ] Implement file cleanup for deleted records
-- [ ] Add image optimization for photos
+- [x] Implement file upload middleware
+- [x] Create file serving endpoints
+- [x] Add file validation (size, type)
+- [x] Implement file cleanup for deleted records
+- [x] Add image optimization for photos
 
 ## Frontend Development Tasks
 
@@ -156,36 +156,36 @@ Based on Technical Specification v2.0
 - [x] Create main layout component
 - [x] Setup navigation menu
 - [x] Implement responsive design
-- [ ] Create loading states
-- [ ] Setup error boundaries
-- [ ] Create toast notification system
-- [ ] Implement dark mode support (optional)
+- [x] Create loading states
+- [x] Setup error boundaries
+- [x] Create toast notification system
+- [x] Implement dark mode support (optional)
 
 ### 15. Authentication UI
 - [x] Create login page
 - [x] Create logout functionality
-- [ ] Implement protected routes
+- [x] Implement protected routes
 - [x] Create user profile dropdown
 - [x] Add role-based UI visibility
 
 ### 16. Dashboard UI
 - [x] Create dashboard main page
 - [x] Implement metric cards
-- [ ] Create data visualization charts:
-  - [ ] Production trend chart
-  - [ ] Sales trend chart
-  - [ ] Financial overview chart
-  - [ ] Debt status chart
-- [ ] Implement date range selector
-- [ ] Create export functionality
-- [ ] Add refresh mechanism
+- [x] Create data visualization charts:
+  - [x] Production trend chart
+  - [x] Sales trend chart
+  - [x] Financial overview chart
+  - [x] Debt status chart
+- [x] Implement date range selector
+- [x] Create export functionality
+- [x] Add refresh mechanism
 
 ### 17. Master Data Management UI
 - [x] Create master data management page
 - [x] Implement CRUD forms for all master data:
   - [x] Vehicles management
   - [x] Afdelings management
-  - [x] PKS management
+ - [x] PKS management
   - [x] Employee departments management
   - [x] Employee positions management
   - [x] Employee groups management
@@ -195,14 +195,14 @@ Based on Technical Specification v2.0
 - [x] Implement "Add new" feature in dropdowns
 
 ### 18. Production Data UI
-- [ ] Create production data entry form
-- [ ] Implement photo upload interface
-- [ ] Create production data table with filters
-- [ ] Add edit and delete functionality
-- [ ] Implement date picker
-- [ ] Add vehicle, afdeling, PKS selection
-- [ ] Create production detail view
-- [ ] Add print/export functionality
+- [x] Create production data entry form
+- [x] Implement photo upload interface
+- [x] Create production data table with filters
+- [x] Add edit and delete functionality
+- [x] Implement date picker
+- [x] Add vehicle, afdeling, PKS selection
+- [x] Create production detail view
+- [x] Add print/export functionality
 
 ### 19. Sales Data UI
 - [ ] Create sales entry form with SP autocomplete
@@ -216,13 +216,13 @@ Based on Technical Specification v2.0
 - [ ] Implement SP search with debouncing
 
 ### 20. Employee Data UI
-- [ ] Create employee entry form
-- [ ] Implement department/position/group selection
-- [ ] Create employee table with status filters
-- [ ] Add employee detail view
-- [ ] Implement salary information display
-- [ ] Add employee status toggle
-- [ ] Create employee search functionality
+- [x] Create employee entry form
+- [x] Implement department/position/group selection
+- [x] Create employee table with status filters
+- [x] Add employee detail view
+- [x] Implement salary information display
+- [x] Add employee status toggle
+- [x] Create employee search functionality
 
 ### 21. Financial Module UI - KP
 - [ ] Create KP transaction form
@@ -256,15 +256,15 @@ Based on Technical Specification v2.0
 - [ ] Create debt reports
 
 ### 24. Common UI Components
-- [ ] Create reusable data table component
-- [ ] Implement form validation components
-- [ ] Create modal components
-- [ ] Build date picker component
-- [ ] Create file upload component
-- [ ] Implement search/filter components
-- [ ] Create loading spinner
-- [ ] Build confirmation dialogs
-- [ ] Create export button component
+- [x] Create reusable data table component
+- [x] Implement form validation components
+- [x] Create modal components
+- [x] Build date picker component
+- [x] Create file upload component
+- [x] Implement search/filter components
+- [x] Create loading spinner
+- [x] Build confirmation dialogs
+- [x] Create export button component
 
 ## Integration & Testing Tasks
 

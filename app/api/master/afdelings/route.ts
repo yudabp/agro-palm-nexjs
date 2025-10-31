@@ -1,24 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { masterAfdelings } from '@/db/schema';
-import { eq, like } from 'drizzle-orm';
+import { eq, ilike, or } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
 
-    let afdelings;
+    let totalCount = 0;
+    let afdelings = [];
+
     if (search) {
-      afdelings = await db.select()
-        .from(masterAfdelings)
-        .where(like(masterAfdelings.name, `%${search}%`))
-        .orderBy(masterAfdelings.name);
-    } else {
-      afdelings = await db.select().from(masterAfdelings).orderBy(masterAfdelings.name);
-    }
+      // Get filtered data and count
+      const searchFilter = or(
+        ilike(masterAfdelings.name, `%${search}%`),
+        ilike(masterAfdelings.description, `%${search}%`)
+      );
 
-    return NextResponse.json(afdelings);
+      const [totalCountResult, filteredAfdelings] = await Promise.all([
+        db.select({ count: masterAfdelings.id }).from(masterAfdelings).where(searchFilter),
+        db.select().from(masterAfdelings).where(searchFilter)
+          .orderBy(masterAfdelings.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      afdelings = filteredAfdelings;
+    } else {
+      // Get all data and count
+      const [totalCountResult, allAfdelings] = await Promise.all([
+        db.select({ count: masterAfdelings.id }).from(masterAfdelings),
+        db.select().from(masterAfdelings)
+          .orderBy(masterAfdelings.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      afdelings = allAfdelings;
+    }
+    
+    // Format response according to PaginatedResponse interface
+    const response = {
+      data: afdelings,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    };
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching afdelings:', error);
     return NextResponse.json(

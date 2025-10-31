@@ -1,25 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { masterEmployeeDepartments } from '@/db/schema';
-import { eq, like } from 'drizzle-orm';
+import { eq, ilike, or } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
 
-    let departments;
+    let totalCount = 0;
+    let departments = [];
+
     if (search) {
-      departments = await db.select()
-        .from(masterEmployeeDepartments)
-        .where(like(masterEmployeeDepartments.name, `%${search}%`))
-        .orderBy(masterEmployeeDepartments.name);
-    } else {
-      departments = await db.select().from(masterEmployeeDepartments).orderBy(masterEmployeeDepartments.name);
-    }
+      // Get filtered data and count
+      const searchFilter = or(
+        ilike(masterEmployeeDepartments.name, `%${search}%`),
+        ilike(masterEmployeeDepartments.description, `%${search}%`)
+      );
 
-    return NextResponse.json(departments);
-  } catch (error) {
+      const [totalCountResult, filteredDepartments] = await Promise.all([
+        db.select({ count: masterEmployeeDepartments.id }).from(masterEmployeeDepartments).where(searchFilter),
+        db.select().from(masterEmployeeDepartments).where(searchFilter)
+          .orderBy(masterEmployeeDepartments.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      departments = filteredDepartments;
+    } else {
+      // Get all data and count
+      const [totalCountResult, allDepartments] = await Promise.all([
+        db.select({ count: masterEmployeeDepartments.id }).from(masterEmployeeDepartments),
+        db.select().from(masterEmployeeDepartments)
+          .orderBy(masterEmployeeDepartments.name)
+          .limit(limit)
+          .offset((page - 1) * limit)
+      ]);
+      
+      totalCount = totalCountResult.length;
+      departments = allDepartments;
+    }
+    
+    // Format response according to PaginatedResponse interface
+    const response = {
+      data: departments,
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+      },
+    };
+
+    return NextResponse.json(response);
+ } catch (error) {
     console.error('Error fetching employee departments:', error);
     return NextResponse.json(
       { error: 'Failed to fetch employee departments' },

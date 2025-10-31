@@ -30,9 +30,10 @@ export default function SignInPage() {
             });
 
             if (result.error) {
-                setError(result.error.message || "Sign in failed");
+                setError(result.error.error || "Sign in failed");
             } else {
-                router.push("/dashboard");
+                // Successful login, redirect to dashboard
+                window.location.href = "/dashboard";
             }
         } catch (err) {
             setError("An unexpected error occurred");

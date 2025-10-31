@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 
 interface UserRole {
@@ -41,7 +41,7 @@ export function useAuth() {
 
   const logout = async () => {
     try {
-      await auth.signOut();
+      await signOut();
       router.push("/sign-in");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -74,6 +74,3 @@ export function useAuth() {
     logout,
   };
 }
-
-// Don't forget to import auth for logout function
-import { auth } from "@/lib/auth-client";
